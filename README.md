@@ -1,44 +1,20 @@
-# 📦 Codex
+# Codex – Modular AI Agent Framework
 
-**Codex** is a modular, extensible code assistant framework.
+Dieses Projekt kombiniert:
+- 🧠 Einfache LLM-Integration
+- ⚡ FastAPI für Webzugriff
+- 📦 Modulares Projekt mit Plugin-System
 
-## 🚀 Features
-
-- 🤖 Intelligent Code Suggestions
-- 🧠 Custom Plugins and Integrations
-- ⚙️ CLI and Web Support
-
-## 🛠️ Installation
+## Start
 
 ```bash
-git clone https://github.com/your-username/Codex.git
-cd Codex
-pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-## 🧪 Usage
+## Beispielaufruf
 
-```bash
-python main.py
+```http
+GET /ask?prompt=Hello
+GET /ask?prompt=plugin:example
+GET /plugins
 ```
-
-## 📁 Project Structure
-
-```
-Codex/
-├── main.py
-├── requirements.txt
-├── .gitignore
-├── README.md
-└── .github/
-    └── workflows/
-        └── python-app.yml
-```
-
-## 🙋 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first.
-
-## 📄 License
-
-This project is licensed under the MIT License.
