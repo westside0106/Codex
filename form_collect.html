@@ -1,15 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-  <title>Modell eintragen</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔧 Hot Wheels Codex Collector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 2em;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+    }
+    form {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 0.6em;
+      margin-top: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 1.5em;
+      padding: 0.75em 1.5em;
+      font-size: 1em;
+      background-color: #ff6f00;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #e65c00;
+    }
+  </style>
 </head>
 <body>
-  <h2>🔧 Modell hinzufügen</h2>
+  <h2>🚗 Modell zur Sammlung hinzufügen</h2>
   <form action="/collect_form" method="post">
     <label for="toy_number">Toy #:</label>
-    <input type="text" name="toy_number" required>
+    <input type="text" id="toy_number" name="toy_number" placeholder="z. B. HYW39" required>
+
     <label for="quantity">Anzahl:</label>
-    <input type="number" name="quantity" value="1" min="1">
+    <input type="number" id="quantity" name="quantity" value="1" min="1">
+
     <button type="submit">Speichern</button>
   </form>
 </body>
