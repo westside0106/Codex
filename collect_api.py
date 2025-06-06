@@ -56,3 +56,14 @@ def collect_model(data: CollectRequest):
     fieldnames = list(collection[0].keys())
     save_collection(collection, fieldnames)
     return {"message": "✅ Modell gespeichert", "toy_number": data.toy_number, "quantity": data.quantity}
+from fastapi.responses import HTMLResponse
+from fastapi import Form
+
+@app.get("/form", response_class=HTMLResponse)
+def form_page():
+    with open("form_collect.html") as f:
+        return f.read()
+
+@app.post("/collect_form")
+def collect_form(toy_number: str = Form(...), quantity: int = Form(1)):
+    return collect_model(CollectRequest(toy_number=toy_number, quantity=quantity))
