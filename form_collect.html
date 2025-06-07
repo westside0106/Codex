@@ -2,64 +2,279 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🔧 Hot Wheels Codex Collector</title>
+  <title>Hot Wheels Collector</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 2em;
-      color: #333;
+      font-family: -apple-system, sans-serif;
+      background: #f8f8f8;
+      padding: 20px;
     }
-    h2 {
-      text-align: center;
+    .form-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      margin-bottom: 30px;
     }
     form {
-      max-width: 500px;
-      margin: auto;
       background: white;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 8px;
+      width: 460px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
     }
     label {
-      display: block;
-      margin-top: 1em;
       font-weight: bold;
     }
-    input[type="text"], input[type="number"] {
+    .tooltip {
+      font-weight: normal;
+      margin-left: 6px;
+      color: #999;
+      cursor: help;
+    }
+    input[type="text"], input[type="number"], textarea {
       width: 100%;
-      padding: 0.6em;
-      margin-top: 0.5em;
+      padding: 8px;
+      margin: 8px 0 4px 0;
+      box-sizing: border-box;
       border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    input.invalid {
+      border-color: #ff6b6b;
+    }
+    small {
+      display: block;
+      margin-bottom: 10px;
+      color: #777;
+      font-size: 0.85em;
+    }
+    input[type="submit"] {
+      background-color: #ffa07a;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+    }
+    input[type="submit"]:hover {
+      background-color: #ff8b5d;
+    }
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin-top: 30px;
+    }
+    .nav-buttons a {
+      text-align: center;
+      background-color: #ffe4d1;
+      color: #333;
+      padding: 10px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.88em;
+      transition: background-color 0.2s ease;
+    }
+    .nav-buttons a:hover {
+      background-color: #ffd2aa;
+    }
+    .confirmation {
+      display: none;
+      background: #d1ffdc;
+      color: #2b662b;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #preview {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff7e6;
+      border-left: 4px solid #ffc107;
+      display: none;
       border-radius: 6px;
     }
-    button {
-      margin-top: 1.5em;
-      padding: 0.75em 1.5em;
-      font-size: 1em;
-      background-color: #ff6f00;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-      width: 100%;
+    #preview img {
+      max-height: 60px;
+      margin-top: 6px;
     }
-    button:hover {
-      background-color: #e65c00;
+    .recent-history {
+      margin-top: 30px;
+      background: #fff;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.05);
+      font-size: 0.9em;
+    }
+    .recent-history span {
+      background: #eee;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-right: 5px;
+      display: inline-block;
+      font-family: monospace;
     }
   </style>
 </head>
 <body>
-  <h2>🚗 Modell zur Sammlung hinzufügen</h2>
-  <form action="/collect_form" method="post">
-    <label for="toy_number">Toy #:</label>
-    <input type="text" id="toy_number" name="toy_number" placeholder="z. B. HYW39" required>
 
-    <label for="quantity">Anzahl:</label>
-    <input type="number" id="quantity" name="quantity" value="1" min="1">
+  <div class="form-wrapper">
 
-    <button type="submit">Speichern</button>
-  </form>
+    <!-- Einzel-Eingabe -->
+    <form id="collectForm" action="/collect_form" method="post">
+      <h2>🚗 Modell speichern</h2>
+
+      <label for="toy_number">Toy #:
+        <span class="tooltip" title="Z. B. HYP47 oder HTD77 – eindeutige Modellnummer">ℹ️</span>
+      </label>
+      <input type="text" id="toy_number" name="toy_number" list="toylist"
+             placeholder="z. B. HYP47" required
+             pattern="[A-Z0-9]{5,}" title="Nur Großbuchstaben/Zahlen, mind. 5 Zeichen">
+      <small>Wird automatisch mit Daten aus der Hauptliste befüllt</small>
+
+      <div id="preview"></div>
+
+      <label for="quantity">Anzahl:
+        <span class="tooltip" title="Anzahl der vorhandenen Exemplare">ℹ️</span>
+      </label>
+      <input type="number" id="quantity" name="quantity" value="1" min="1">
+
+      <input type="submit" value="💾 Speichern">
+      <div class="confirmation" id="confirmationMsg">✅ Modell erfolgreich gespeichert!</div>
+      <div class="confirmation" id="liveQuantity" style="display:none; background:#e9f5ff; color:#2a4a6f;">
+        <i class="fa-solid fa-layer-group"></i> Du besitzt jetzt <span id="quantityTotal">X</span>x <code id="lastSavedToy">???</code></div>
+    </form>
+
+    <!-- Bulk-Eingabe -->
+    <form id="bulkForm" action="/collect_bulk" method="post">
+      <h2>📦 Mehrere Modelle eingeben</h2>
+      <label for="entries">Beispiel: <code>2x HYP39, x3 HTD77, HNW02</code></label>
+      <textarea id="entries" name="entries" rows="5" placeholder="Bulk-Eingabe (z. B. 2x HYP39, HNW02, x3 HTD77)"></textarea>
+      <input type="submit" value="📥 Alle speichern">
+    </form>
+  </div>
+
+  <div class="nav-buttons">
+    <a href="/collection"><i class="fa-solid fa-box-archive"></i> Sammlung anzeigen</a>
+    <a href="/lost"><i class="fa-solid fa-magnifying-glass-minus"></i> Fehlende Modelle</a>
+    <a href="/json"><i class="fa-solid fa-file-lines"></i> JSON-Export</a>
+    <a href="/download_csv" download><i class="fa-solid fa-download"></i> CSV-Download</a>
+    <a href="/docs"><i class="fa-solid fa-book"></i> API-Dokumentation</a>
+  </div>
+
+  <div class="recent-history" id="recentHistory">
+    <strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br>
+    <span>-</span>
+  </div>
+
+  <script>
+    const toyInput = document.getElementById("toy_number");
+    const previewBox = document.getElementById("preview");
+
+    function updateHistory(toyNumber) {
+      let history = JSON.parse(localStorage.getItem("recentToys") || "[]");
+      history.unshift(toyNumber);
+      history = [...new Set(history)].slice(0, 3);
+      localStorage.setItem("recentToys", JSON.stringify(history));
+      showHistory();
+    }
+
+    function showHistory() {
+      const list = JSON.parse(localStorage.getItem("recentToys") || "[]");
+      const box = document.getElementById("recentHistory");
+      if (list.length === 0) {
+        box.innerHTML = '<strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br><span>-</span>';
+      } else {
+        box.innerHTML = '<strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br>' +
+          list.map(t => `<span>${t}</span>`).join('');
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      showHistory();
+
+      toyInput.addEventListener("input", () => {
+        const toy = toyInput.value.trim();
+        const pattern = /^[A-Z0-9]{5,}$/;
+        toyInput.classList.toggle("invalid", !pattern.test(toy));
+
+        if (toy.length < 3) {
+          previewBox.style.display = "none";
+          return;
+        }
+
+        fetch(`/toy_info?toy_number=${encodeURIComponent(toy)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data) {
+              previewBox.style.display = "none";
+              return;
+            }
+            const cleanSeries = data.series.replace(/(New for\s?\d{4}|Exclusive|2nd Color|Target|Walmart|GameStop|Multipack|!)/gi, '').trim();
+            previewBox.innerHTML = `
+              <strong>🔍 Vorschau:</strong><br>
+              <b>${data.model_name}</b> (${data.year}, ${cleanSeries})<br><small><code>${toy}</code></small>
+              ${data.photo ? `<br><img src="${data.photo}" alt="Bild">` : ""}
+            `;
+            previewBox.style.display = "block";
+          });
+      });
+
+      document.getElementById("collectForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const toy_number = toyInput.value.trim();
+        const formData = new FormData(form);
+        const pattern = /^[A-Z0-9]{5,}$/;
+
+        if (!pattern.test(toy_number)) {
+          alert("Ungültiges Format für Toy #. Nur Großbuchstaben/Zahlen, mind. 5 Zeichen.");
+          return;
+        }
+
+        fetch("/collect_form", {
+            method: "POST",
+         body: formData
+        }).then(resp => resp.json()).then(data => {
+            if (data.success) {
+            // Standard-Success-Feedback
+            document.getElementById("confirmationMsg").style.display = "block";
+            setTimeout(() => document.getElementById("confirmationMsg").style.display = "none", 2000);
+
+            // Neues Mengen-Feedback
+            document.getElementById("liveQuantity").style.display = "block";
+            document.getElementById("quantityTotal").innerText = data.total_quantity;
+            document.getElementById("lastSavedToy").innerText = toy_number;
+            setTimeout(() => document.getElementById("liveQuantity").style.display = "none", 3000);
+
+            // Reset
+            form.reset();
+            document.getElementById("quantity").value = 1;
+            previewBox.style.display = "none";
+            updateHistory(toy_number);
+        }
+    });
+      });
+    });
+
+    // Vorschlagsliste nachladen
+    fetch("/toy_suggestions")
+      .then(r => r.text())
+      .then(html => document.body.insertAdjacentHTML("beforeend", html));
+  </script>
 </body>
 </html>
