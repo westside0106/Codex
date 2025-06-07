@@ -1,108 +1,66 @@
-# 🧰 Codex: Hot Wheels Sammlungsmanager
+# Codex 🧠🔍 – Das Sammler-Tool für Hot Wheels Modelle
 
-**Codex** ist ein persönlicher Sammlungsagent für Hot Wheels-Modelle, der auf FastAPI basiert. Er ermöglicht das Erfassen, Verwalten und Exportieren deiner Sammlung mit einer benutzerfreundlichen Weboberfläche und API-Endpunkten.
+Codex ist ein intelligentes System zur Verwaltung, Analyse und Erweiterung deiner Hot Wheels Sammlung. Es unterstützt das Erkennen von Duplikaten, zeigt dir fehlende Modelle je Serie und Jahr an und ermöglicht smarte Dateneingabe via Formular – ideal für Sammler, die Überblick und Tiefe wollen.
 
----
+## 🔧 Funktionen
 
-## 🚗 Funktionen
+- ✅ Sammlung verwalten und analysieren
+- 📄 CSV- und JSON-Export deiner Sammlung
+- 🔍 Serie + Jahr-basierte Fortschrittsanzeige
+- 🧠 Intelligente Duplikaterkennung (auch mit Mengenangabe)
+- ⚙️ Live-Modellvorschau beim Hinzufügen (Toy #)
+- 🌐 Webbasierte Oberfläche via FastAPI
 
-- **Modell hinzufügen**: Trage neue Modelle mit ihrer Toy-Nummer und Anzahl über ein Webformular ein.
-- **Sammlung anzeigen**: Durchsuche deine Sammlung in einer visuellen HTML-Tabelle mit Bildern.
-- **JSON-Export**: Exportiere deine Sammlung als JSON für die Weiterverarbeitung.
-- **API-Dokumentation**: Interaktive Swagger-Oberfläche zur Erkundung der API-Endpunkte.
+## 📁 Ordnerstruktur
 
----
+```
+Codex/
+├── data/
+│   ├── DONE_HotWheels1_commas.csv         ← Vollständige Modell-Datenbank
+│   ├── HotWheelsGitCollection.csv         ← Deine persönliche Sammlung
+│   └── HotWheelsYear-Toy.csv              ← Zuordnung Toy # → Jahr
+├── templates/
+│   ├── form_collect.html                  ← Eingabeformular
+├── static/
+│   └── success.html                       ← Bestätigungsseite
+├── collect_api.py                         ← FastAPI-Backend mit allen Routen
+├── main.py                                ← App-Starter
+└── README.md                              ← Diese Datei
+```
 
-## 🛠️ Installation
+## ▶️ Startanleitung
 
-1. **Repository klonen**:
-
+1. **Projekt klonen**  
    ```bash
    git clone https://github.com/westside0106/Codex.git
    cd Codex
    ```
 
-2. **Abhängigkeiten installieren**:
+2. **Virtual Environment aktivieren (optional aber empfohlen)**  
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-   Stelle sicher, dass Python 3.7 oder höher installiert ist.
-
+3. **Abhängigkeiten installieren**  
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Server starten**:
-
+4. **Server starten**  
    ```bash
    uvicorn collect_api:app --reload
    ```
 
-4. **Zugriff auf die Anwendung**:
+5. Öffne im Browser: [http://127.0.0.1:8000/form](http://127.0.0.1:8000/form)
 
-   Öffne deinen Browser und navigiere zu `http://127.0.0.1:8000/`.
+## ✨ Hinweise
 
----
-
-## 🌐 Weboberfläche
-
-- **Modell hinzufügen**: [http://127.0.0.1:8000/form](http://127.0.0.1:8000/form)
-- **Sammlung anzeigen**: [http://127.0.0.1:8000/collection](http://127.0.0.1:8000/collection)
-- **JSON-Export**: [http://127.0.0.1:8000/export/json](http://127.0.0.1:8000/export/json)
-- **API-Dokumentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- Sammel-Datenbank (`DONE_HotWheels1_commas.csv`) wird nicht automatisch aktualisiert.
+- Neue Modelle kannst du per Toy # eingeben oder direkt via CSV ergänzen.
+- Die Duplikaterkennung berücksichtigt Farbvarianten als eigenständig.
 
 ---
 
-## 📁 Projektstruktur
-
-```
-Codex/
-├── collect_api.py           # Haupt-FastAPI-Anwendung
-├── export_json_plugin.py    # Plugin für JSON-Export
-├── static/
-│   ├── index.html           # Startseite mit Navigation
-│   └── collection_view.html # Visuelle Sammlungsvorschau
-├── templates/
-│   └── form_collect.html    # HTML-Formular zum Hinzufügen von Modellen
-├── data/
-│   ├── DONE_HotWheels1_commas.csv  # Ursprüngliche Datenbank
-│   └── HotWheelsGitCollection.csv  # Benutzerdefinierte Sammlung
-└── requirements.txt         # Python-Abhängigkeiten
-```
-
----
-
-## 📦 Abhängigkeiten
-
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [Uvicorn](https://www.uvicorn.org/)
-- [Pandas](https://pandas.pydata.org/)
-- [Jinja2](https://palletsprojects.com/p/jinja/)
-
-Installiere alle Abhängigkeiten mit:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## 🤝 Mitwirken
-
-Beiträge sind willkommen! Wenn du neue Funktionen hinzufügen oder Fehler beheben möchtest:
-
-1. Forke das Repository.
-2. Erstelle einen neuen Branch: `git checkout -b feature/DeineFunktion`.
-3. Nimm deine Änderungen vor und committe sie: `git commit -m 'Füge neue Funktion hinzu'`.
-4. Push den Branch: `git push origin feature/DeineFunktion`.
-5. Erstelle einen Pull Request.
-
----
-
-## 📄 Lizenz
-
-Dieses Projekt steht unter der [MIT-Lizenz](LICENSE).
-
----
-
-## 📬 Kontakt
-
-Bei Fragen oder Anregungen kannst du mich über GitHub kontaktieren: [@westside0106](https://github.com/westside0106)
+Erstellt von **Philipp Lahn** 🏎️✨  
+Feedback oder Ideen? → GitHub-Issue oder PN.
