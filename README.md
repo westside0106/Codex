@@ -61,6 +61,3 @@ Codex/
 - Die Duplikaterkennung berücksichtigt Farbvarianten als eigenständig.
 
 ---
-
-Erstellt von **Philipp Lahn** 🏎️✨  
-Feedback oder Ideen? → GitHub-Issue oder PN.
