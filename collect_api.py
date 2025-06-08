@@ -181,13 +181,14 @@ def view_collection():
             if col == "Series":
                 val = norm_series
             if col == "Quantity" and val.isdigit():
-                val = f"""
-                <div style='display:flex;align-items:center;gap:6px;'>
-                    <button onclick="adjustQuantity('{entry['Toy #']}', '{entry.get('Model Name','').replace('\'','\\\'')}', '{entry.get('Photo','')}', -1)" style='padding:2px 6px;'>➖</button>
-                    <span>{val}x</span>
-                    <button onclick="adjustQuantity('{entry['Toy #']}', '{entry.get('Model Name','').replace('\'','\\\'')}', '{entry.get('Photo','')}', 1)" style='padding:2px 6px;'>➕</button>
-                </div>
-                """
+                toy_id = entry.get("Toy #", "")
+val = f"""
+<div style='display:flex;align-items:center;gap:4px'>
+    <button onclick="adjustQuantity('{toy_id}','-')">-</button>
+    <span>{val}x</span>
+    <button onclick="adjustQuantity('{toy_id}','+')">+</button>
+</div>
+"""
             tooltip = tooltips.get(col, col)
             row += f'<td title="{tooltip}">{val}</td>'
         row += "</tr>"
