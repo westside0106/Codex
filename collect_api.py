@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Form, Request
 from pydantic import BaseModel
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 import re
+import textwrap
 from pathlib import Path
 import csv
 
@@ -182,13 +183,13 @@ def view_collection():
                 val = norm_series
             if col == "Quantity" and val.isdigit():
                 toy_id = entry.get("Toy #", "")
-val = f"""
-<div style='display:flex;align-items:center;gap:4px'>
-    <button onclick="adjustQuantity('{toy_id}','-')">-</button>
-    <span>{val}x</span>
-    <button onclick="adjustQuantity('{toy_id}','+')">+</button>
-</div>
-"""
+                val = textwrap.dedent(f"""\
+                    <div style='display:flex;align-items:center;gap:4px'>
+                        <button onclick="adjustQuantity('{toy_id}','-')">-</button>
+                        <span>{val}x</span>
+                       <button onclick="adjustQuantity('{toy_id}','+')">+</button>
+                    </div>
+                """)
             tooltip = tooltips.get(col, col)
             row += f'<td title="{tooltip}">{val}</td>'
         row += "</tr>"
