@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException, Form, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Form, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
-import re
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 from pathlib import Path
-import csv
+import csv, re
 
-app = FastAPI()
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 DATA_PATH = Path("data/DONE_HotWheels1_commas.csv")
 COLLECTION_PATH = Path("data/HotWheelsGitCollection.csv")
@@ -78,7 +79,14 @@ def normalize_series(name: str) -> str:
     name = re.sub(r"\s{2,}", " ", name)     # doppelte Leerzeichen
     return name.strip()
 
-@app.post("/collect")
+@router.get("/form", response_class=HTMLResponse)
+def serve_form_page():
+    filepath = Path("templates/form_collect.html")
+    if not filepath.exists():
+        return HTMLResponse(content="❌ form_collect.html nicht gefunden", status_code=404)
+    return HTMLResponse(content=filepath.read_text(encoding="utf-8"))
+
+@router.post("/collect")
 def collect_model_api(data: CollectRequest):
     db = load_database()
     collection = load_collection()
@@ -119,12 +127,8 @@ def collect_model_api(data: CollectRequest):
         "total_quantity": total_quantity,
         "type": "new" if not already_in else "updated"
     }
-@app.get("/form", response_class=HTMLResponse)
-def form_page():
-    with open("form_collect.html") as f:
-        return f.read()
 
-@app.post("/collect_form")
+@router.post("/collect_form")
 def collect_form(toy_number: str = Form(...), quantity: int = Form(1)):
     result = collect_model(CollectRequest(toy_number=toy_number, quantity=quantity))
     return JSONResponse(content={
@@ -133,7 +137,7 @@ def collect_form(toy_number: str = Form(...), quantity: int = Form(1)):
         "total_quantity": result["new_quantity"]
     })
 
-@app.get("/collection", response_class=HTMLResponse)
+@router.get("/collection", response_class=HTMLResponse)
 def view_collection():
     import re
 
@@ -339,13 +343,13 @@ def view_collection():
     """
     return HTMLResponse(content=html)
 
-@app.get("/download_csv")
+@router.get("/download_csv")
 def download_csv():
     if not COLLECTION_PATH.exists():
         raise HTTPException(status_code=404, detail="Sammlung nicht gefunden")
     return FileResponse(COLLECTION_PATH, media_type='text/csv', filename="HotWheelsCollection.csv")
 
-@app.get("/lost", response_class=HTMLResponse)
+@router.get("/lost", response_class=HTMLResponse)
 def show_missing():
     import re
     import csv
@@ -508,7 +512,7 @@ def show_missing():
     return HTMLResponse(content=html)
 
 # FastAPI Route: Vorschlagsliste für Toy #
-@app.get("/toy_suggestions", response_class=HTMLResponse)
+@router.get("/toy_suggestions", response_class=HTMLResponse)
 def toy_suggestions():
     db = load_database()
     toylist = sorted({entry["Toy #"] for entry in db if entry.get("Toy #")})
@@ -516,7 +520,7 @@ def toy_suggestions():
     return HTMLResponse(content=html)
 
 # FastAPI Route: Modellinfo (z. B. für Tooltip oder Smart-Vorschau)
-@app.get("/toy_info")
+@router.get("/toy_info")
 def toy_info(toy_number: str):
     db = load_database()
     result = next((entry for entry in db if entry.get("Toy #") == toy_number), None)
@@ -530,7 +534,7 @@ def toy_info(toy_number: str):
     raise HTTPException(status_code=404, detail="Modell nicht gefunden")
 
 # FastAPI Route: Autocomplete für Modellnamen (optional)
-@app.get("/autocomplete_model_names", response_class=HTMLResponse)
+@router.get("/autocomplete_model_names", response_class=HTMLResponse)
 def autocomplete_model_names():
     db = load_database()
     names = sorted({entry["Model Name"] for entry in db if entry.get("Model Name")})
@@ -538,7 +542,7 @@ def autocomplete_model_names():
     return HTMLResponse(content=html)
 
 # Optional: Route zur Prüfung von Duplikaten (Debug oder UI-Hinweis)
-@app.get("/check_duplicates")
+@router.get("/check_duplicates")
 def check_duplicates():
     collection = load_collection()
     counter = {}
@@ -549,7 +553,7 @@ def check_duplicates():
     return {"duplicates": duplicates}
 
 # NEUE ROUTE: Bulk-Formular-Eingabe wie "HYP47, 2x HNW39"
-@app.post("/collect_bulk")
+@router.post("/collect_bulk")
 def collect_bulk_form(entries: str = Form(...)):
     results = []
     for raw in entries.split(","):
@@ -585,7 +589,7 @@ def collect_bulk_form(entries: str = Form(...)):
         </body></html>
     """)
 
-@app.post("/adjust_quantity")
+@router.post("/adjust_quantity")
 def adjust_quantity(
     toy_number: str = Form(...),
     delta: int = Form(...),
@@ -615,7 +619,7 @@ def adjust_quantity(
     save_collection(collection, fieldnames)
     return {"status": "ok", "new_quantity": new_val}
 
-@app.post("/update_quantity")
+@router.post("/update_quantity")
 async def update_quantity(request: Request):
     data = await request.json()
     toy_number = data.get("toy_number")
@@ -643,19 +647,26 @@ async def update_quantity(request: Request):
     else:
         return {"success": False, "error": "Toy # not found"}
     
-@app.get("/compare", response_class=HTMLResponse)
+@router.get("/compare", response_class=HTMLResponse)
 def compare_progress():
     from collections import defaultdict
 
     db = load_database()
     collection = load_collection()
 
-    def normalize_series(name: str) -> str:
-        name = name.strip()
-        name = re.sub(r"\b(New for\s?\d{4}|New for|Target Exclusive|Kroger Exclusive|Exclusive|2nd Color|Walmart|GameStop Exclusive|Multipack Exclusive|!)\b", "", name, flags=re.IGNORECASE)
-        name = re.sub(r"[–\-]{1,2}", "", name)
-        name = re.sub(r"\s{2,}", " ", name)
-        return name.strip()
+    def normalize_series(series: str) -> str:
+        if not series:
+            return "Unbekannt"
+        series = re.sub(r"(New for\s?\d{4}|New for|Kroger Exclusive|Exclusive|Walmart|2nd Color|"
+                    r"Target Exclusive|GameStop Exclusive|Multipack Exclusive|Best Buy|Super Treasure Hunt|"
+                    r"Treasure Hunt|Dollar General|Family Dollar|Family Day|Dollar Tree|Chinese New Year|"
+                    r"Day of the Dead|Halloween|Earth Day|Happy Birthday|Valentine'?s Day|"
+                    r"International Friendship Day|Ryu'?s Rides|New in Mainline|Mattel 80th Anniversary|"
+                    r"Leap Year|World Autism Awareness Day|World Braille Day|International Women'?s Day)",
+                    "", series, flags=re.IGNORECASE)
+        series = re.sub(r"[^\w\s]", " ", series)  # Sonderzeichen entfernen
+        series = re.sub(r"\s{2,}", " ", series)    # doppelte Leerzeichen
+        return series.strip()
 
     # Serienzählungen nach "Normierte Serie + Jahr"
     total_per_series = defaultdict(int)
@@ -722,3 +733,26 @@ def compare_progress():
 
     html += "</table><br><a href='/form'>⬅️ Zurück zum Formular</a></body></html>"
     return HTMLResponse(content=html)
+
+@router.post("/create_page")
+def create_page(page_name: str = Form(...), page_content: str = Form(...)):
+    safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "", page_name)
+    filepath = Path("templates") / f"{safe_name}.html"
+    filepath.write_text(page_content, encoding="utf-8")
+    return HTMLResponse(content=f"✅ Seite '{safe_name}.html' wurde erstellt.", status_code=201)
+
+@router.get("/{filename}", response_class=HTMLResponse)
+def show_created_page(filename: str):
+    filepath = Path("templates") / filename
+    if not filepath.exists():
+        return HTMLResponse(content="❌ Seite nicht gefunden.", status_code=404)
+    return HTMLResponse(content=filepath.read_text(encoding="utf-8"))
+
+
+@router.get("/available_pages")
+def available_pages():
+    pages = [f.name for f in Path("templates").glob("*.html") if f.name != "form_collect.html"]
+    return {"pages": pages}
+
+# router exportieren
+__all__ = ["router"]

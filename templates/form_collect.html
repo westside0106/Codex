@@ -1,0 +1,292 @@
+<!-- 🟦 Blauer Stil, 3er Button-Zeile, korrigierte Blockbreiten, Vorschau & History beibehalten -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Hot Wheels Collector</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #eef4fb;
+      padding: 20px;
+    }
+    .form-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+    form {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 460px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+    }
+    label {
+      font-weight: bold;
+    }
+    .tooltip {
+      font-weight: normal;
+      margin-left: 6px;
+      color: #666;
+      cursor: help;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0 4px 0;
+      box-sizing: border-box;
+      border: 1px solid #b5cbe7;
+      border-radius: 4px;
+      font-size: 1em;
+      background: #f5f9ff;
+    }
+    input.invalid {
+      border-color: #ff6b6b;
+    }
+    small {
+      display: block;
+      margin-bottom: 10px;
+      color: #777;
+      font-size: 0.85em;
+    }
+    input[type="submit"] {
+      background-color: #3483d8;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+    }
+    input[type="submit"]:hover {
+      background-color: #256ab0;
+    }
+    .nav-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 30px;
+    }
+    .nav-buttons a {
+      text-align: center;
+      background-color: #dceeff;
+      color: #155a92;
+      padding: 10px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.88em;
+      transition: background-color 0.2s ease;
+    }
+    .nav-buttons a:hover {
+      background-color: #beddf9;
+    }
+    .confirmation {
+      display: none;
+      background: #e3f3ff;
+      color: #155a92;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-align: center;
+    }
+    #preview {
+      margin-top: 10px;
+      padding: 10px;
+      background: #eef6ff;
+      border-left: 4px solid #3483d8;
+      display: none;
+      border-radius: 6px;
+    }
+    #preview img {
+      max-height: 60px;
+      margin-top: 6px;
+    }
+    .recent-history {
+      margin-top: 30px;
+      background: #ffffff;
+      padding: 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.05);
+      font-size: 0.9em;
+    }
+    .recent-history span {
+      background: #e1effa;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-right: 5px;
+      display: inline-block;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-wrapper">
+  <!-- Einzel-Eingabe -->
+  <form id="collectForm" action="/collect_form" method="post">
+    <h2>🚗 Modell speichern</h2>
+    <label for="toy_number">Toy #:<span class="tooltip" title="z. B. HYP47 oder HTD77">ℹ️</span></label>
+    <input type="text" id="toy_number" name="toy_number" placeholder="z. B. HYP47" required pattern="[A-Z0-9]{5,}">
+    <small>Wird automatisch mit Daten aus der Hauptliste befüllt</small>
+
+    <div id="preview"></div>
+
+    <label for="quantity">Anzahl:<span class="tooltip" title="Anzahl der vorhandenen Exemplare">ℹ️</span></label>
+    <input type="number" id="quantity" name="quantity" value="1" min="1">
+    <input type="submit" value="💾 Speichern">
+    <div class="confirmation" id="confirmationMsg">✅ Modell erfolgreich gespeichert!</div>
+    <div class="confirmation" id="liveQuantity" style="display:none; background:#e9f5ff; color:#2a4a6f;">
+      <i class="fa-solid fa-layer-group"></i> Du besitzt jetzt <span id="quantityTotal">X</span>x <code id="lastSavedToy">???</code>
+    </div>
+  </form>
+
+  <!-- Bulk-Eingabe -->
+  <form id="bulkForm" action="/collect_bulk" method="post">
+    <h2>📦 Mehrere Modelle eingeben</h2>
+    <label for="entries">Beispiel: <code>2x HYP39, x3 HTD77, HNW02</code></label>
+    <textarea id="entries" name="entries" rows="5" placeholder="Bulk-Eingabe (z. B. 2x HYP39, HNW02, x3 HTD77)"></textarea>
+    <input type="submit" value="📥 Alle speichern">
+  </form>
+</div>
+
+<!-- Buttons -->
+<div class="nav-buttons">
+  <a href="/collection"><i class="fa-solid fa-box-archive"></i> Sammlung anzeigen</a>
+  <a href="/lost"><i class="fa-solid fa-magnifying-glass-minus"></i> Fehlende Modelle</a>
+  <a href="/compare"><i class="fa-solid fa-chart-line"></i> Serienvergleich</a>
+  <a href="/json"><i class="fa-solid fa-file-lines"></i> JSON-Export</a>
+  <a href="/download_csv"><i class="fa-solid fa-download"></i> CSV-Download</a>
+  <a href="/docs"><i class="fa-solid fa-book"></i> API-Dokumentation</a>
+  <a href="#createPageForm"><i class="fa-solid fa-circle-plus"></i> Neue Seite erstellen</a>
+</div>
+
+<!-- Seite erstellen -->
+<form id="createPageForm" action="/create_page" method="post" style="margin-top:30px; background: #f4faff; border: 1px solid #cbe5ff; padding: 16px; border-radius: 6px;">
+  <h3>➕ Neue Seite erstellen</h3>
+  <label for="page_name">Name der Seite:</label><br>
+  <input type="text" name="page_name" required placeholder="z. B. specials" style="width:100%;"><br><br>
+  <label for="page_content">HTML-Inhalt:</label><br>
+  <textarea name="page_content" rows="8" placeholder="<!DOCTYPE html>..." style="width:100%;"></textarea><br>
+  <input type="submit" value="💾 Seite erstellen" style="margin-top:10px;">
+</form>
+
+<!-- Verlauf -->
+<div class="recent-history" id="recentHistory">
+  <strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br>
+  <span>-</span>
+</div>
+
+<script>
+  const toyInput = document.getElementById("toy_number");
+  const previewBox = document.getElementById("preview");
+
+  function updateHistory(toyNumber) {
+    let history = JSON.parse(localStorage.getItem("recentToys") || "[]");
+    history.unshift(toyNumber);
+    history = [...new Set(history)].slice(0, 3);
+    localStorage.setItem("recentToys", JSON.stringify(history));
+    showHistory();
+  }
+
+  function showHistory() {
+    const list = JSON.parse(localStorage.getItem("recentToys") || "[]");
+    const box = document.getElementById("recentHistory");
+    if (list.length === 0) {
+      box.innerHTML = '<strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br><span>-</span>';
+    } else {
+      box.innerHTML = '<strong><i class="fa-solid fa-clock-rotate-left"></i> Zuletzt gespeichert:</strong><br>' +
+        list.map(t => `<span>${t}</span>`).join('');
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    showHistory();
+    toyInput.addEventListener("input", () => {
+      const toy = toyInput.value.trim();
+      const pattern = /^[A-Z0-9]{5,}$/;
+      toyInput.classList.toggle("invalid", !pattern.test(toy));
+
+      if (toy.length < 3) {
+        previewBox.style.display = "none";
+        return;
+      }
+
+      fetch(`/toy_info?toy_number=${encodeURIComponent(toy)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) {
+            previewBox.style.display = "none";
+            return;
+          }
+          const cleanSeries = data.series.replace(/(New for\s?\d{4}|Exclusive|2nd Color|Target|Walmart|GameStop|Multipack|!)/gi, '').trim();
+          previewBox.innerHTML = `
+            <strong>🔍 Vorschau:</strong><br>
+            <b>${data.model_name}</b> (${data.year}, ${cleanSeries})<br><small><code>${toy}</code></small>
+            ${data.photo ? `<br><img src="${data.photo}" alt="Bild">` : ""}
+          `;
+          previewBox.style.display = "block";
+        });
+    });
+
+    document.getElementById("collectForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const toy_number = toyInput.value.trim();
+      const formData = new FormData(form);
+      const pattern = /^[A-Z0-9]{5,}$/;
+
+      if (!pattern.test(toy_number)) {
+        alert("Ungültiges Format für Toy #.");
+        return;
+      }
+
+      fetch("/collect_form", {
+        method: "POST",
+        body: formData
+      }).then(resp => resp.json()).then(data => {
+        if (data.success) {
+          document.getElementById("confirmationMsg").style.display = "block";
+          setTimeout(() => document.getElementById("confirmationMsg").style.display = "none", 2000);
+          document.getElementById("liveQuantity").style.display = "block";
+          document.getElementById("quantityTotal").innerText = data.total_quantity;
+          document.getElementById("lastSavedToy").innerText = toy_number;
+          setTimeout(() => document.getElementById("liveQuantity").style.display = "none", 3000);
+          form.reset();
+          document.getElementById("quantity").value = 1;
+          previewBox.style.display = "none";
+          updateHistory(toy_number);
+        }
+      });
+    });
+  });
+
+  fetch("/available_pages")
+    .then(r => r.json())
+    .then(data => {
+      const nav = document.querySelector(".nav-buttons");
+      data.pages.forEach(filename => {
+        const name = filename.replace(".html", "");
+        const btn = document.createElement("a");
+        btn.href = `/${filename}`;
+        btn.innerHTML = `<i class="fa-solid fa-file"></i> ${name}`;
+        btn.style.backgroundColor = "#e9f3ff";
+        btn.style.color = "#155a92";
+        nav.appendChild(btn);
+      });
+    });
+
+  fetch("/toy_suggestions")
+    .then(r => r.text())
+    .then(html => document.body.insertAdjacentHTML("beforeend", html));
+</script>
+</body>
+</html>
